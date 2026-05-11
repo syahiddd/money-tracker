@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MoneyTrack - Pencatatan Uang</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
+</head>
+<body>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-icon">💰</span>
+      <span class="brand-text">MoneyTrack</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" data-view="dashboard"><span>📊</span> Dashboard</button>
+      <button class="nav-item" data-view="transactions"><span>💸</span> Transaksi</button>
+      <button class="nav-item" data-view="categories"><span>🏷️</span> Kategori</button>
+      <button class="nav-item" data-view="accounts"><span>🏦</span> Akun</button>
+      <button class="nav-item" data-view="budgets"><span>🎯</span> Budget</button>
+      <button class="nav-item" data-view="goals"><span>⭐</span> Target</button>
+      <button class="nav-item" data-view="settings"><span>⚙️</span> Pengaturan</button>
+    </nav>
+    <div class="sidebar-footer">
+      <small>v1.0 · Data di localStorage</small>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+      <h1 class="page-title" id="pageTitle">Dashboard</h1>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">🌙</button>
+        <button class="btn btn-primary" id="addTxBtn">+ Transaksi</button>
+      </div>
+    </header>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="cards">
+        <div class="card card-balance">
+          <div class="card-label">Saldo Total</div>
+          <div class="card-value" id="totalBalance">Rp0</div>
+          <div class="card-sub" id="totalAccounts">0 akun</div>
+        </div>
+        <div class="card card-income">
+          <div class="card-label">Pemasukan Bulan Ini</div>
+          <div class="card-value" id="monthIncome">Rp0</div>
+          <div class="card-sub" id="monthIncomeCount">0 transaksi</div>
+        </div>
+        <div class="card card-expense">
+          <div class="card-label">Pengeluaran Bulan Ini</div>
+          <div class="card-value" id="monthExpense">Rp0</div>
+          <div class="card-sub" id="monthExpenseCount">0 transaksi</div>
+        </div>
+        <div class="card card-net">
+          <div class="card-label">Selisih Bulan Ini</div>
+          <div class="card-value" id="monthNet">Rp0</div>
+          <div class="card-sub" id="monthNetPct">—</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Pengeluaran per Kategori</h3>
+            <span class="panel-sub" id="pieMonthLabel"></span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="pieChart" width="320" height="240"></canvas>
+            <div class="legend" id="pieLegend"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Tren 6 Bulan Terakhir</h3>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="barChart" width="520" height="240"></canvas>
+            <div class="legend">
+              <div class="legend-item"><span class="dot" style="background:#22c55e"></span>Pemasukan</div>
+              <div class="legend-item"><span class="dot" style="background:#ef4444"></span>Pengeluaran</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Transaksi Terbaru</h3>
+          <button class="btn btn-ghost" data-view="transactions">Lihat semua →</button>
+        </div>
+        <div id="recentTx" class="tx-list"></div>
+      </div>
+    </section>
+
+    <!-- TRANSACTIONS -->
+    <section class="view" id="view-transactions">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Semua Transaksi</h3>
+        </div>
+        <div class="filters">
+          <input type="search" id="txSearch" placeholder="Cari catatan..." />
+          <select id="txTypeFilter">
+            <option value="">Semua Tipe</option>
+            <option value="income">Pemasukan</option>
+            <option value="expense">Pengeluaran</option>
+            <option value="transfer">Transfer</option>
+          </select>
+          <select id="txCategoryFilter"><option value="">Semua Kategori</option></select>
+          <select id="txAccountFilter"><option value="">Semua Akun</option></select>
+          <input type="month" id="txMonthFilter" />
+          <button class="btn btn-ghost" id="clearFilters">Reset</button>
+        </div>
+        <div id="allTx" class="tx-list"></div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section class="view" id="view-categories">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Kategori</h3>
+          <button class="btn btn-primary" id="addCatBtn">+ Kategori</button>
+        </div>
+        <div class="cat-grid" id="catList"></div>
+      </div>
+    </section>
+
+    <!-- ACCOUNTS -->
+    <section class="view" id="view-accounts">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Akun</h3>
+          <button class="btn btn-primary" id="addAccBtn">+ Akun</button>
+        </div>
+        <div class="acc-grid" id="accList"></div>
+      </div>
+    </section>
+
+    <!-- BUDGETS -->
+    <section class="view" id="view-budgets">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Budget Bulanan</h3>
+          <button class="btn btn-primary" id="addBudgetBtn">+ Budget</button>
+        </div>
+        <p class="panel-sub">Atur batas pengeluaran per kategori untuk bulan ini.</p>
+        <div id="budgetList" class="budget-list"></div>
+      </div>
+    </section>
+
+    <!-- GOALS -->
+    <section class="view" id="view-goals">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Target Tabungan</h3>
+          <button class="btn btn-primary" id="addGoalBtn">+ Target</button>
+        </div>
+        <div id="goalList" class="goal-list"></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view" id="view-settings">
+      <div class="panel">
+        <div class="panel-head"><h3>Data</h3></div>
+        <div class="settings-row">
+          <div>
+            <strong>Export JSON</strong>
+            <p class="panel-sub">Unduh semua data untuk backup.</p>
+          </div>
+          <button class="btn" id="exportJsonBtn">Export JSON</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <strong>Export CSV</strong>
+            <p class="panel-sub">Unduh transaksi untuk Excel/Sheets.</p>
+          </div>
+          <button class="btn" id="exportCsvBtn">Export CSV</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <strong>Import JSON</strong>
+            <p class="panel-sub">Pulihkan dari file backup (timpa data saat ini).</p>
+          </div>
+          <label class="btn">
+            Pilih file
+            <input type="file" id="importJsonInput" accept="application/json" hidden />
+          </label>
+        </div>
+        <div class="settings-row danger">
+          <div>
+            <strong>Reset semua data</strong>
+            <p class="panel-sub">Menghapus semua transaksi, kategori, akun, budget, dan target.</p>
+          </div>
+          <button class="btn btn-danger" id="resetAllBtn">Reset</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Tampilan</h3></div>
+        <div class="settings-row">
+          <div>
+            <strong>Mata Uang</strong>
+            <p class="panel-sub">Simbol yang ditampilkan.</p>
+          </div>
+          <select id="currencySelect">
+            <option value="IDR">Rupiah (Rp)</option>
+            <option value="USD">Dolar ($)</option>
+            <option value="EUR">Euro (€)</option>
+            <option value="MYR">Ringgit (RM)</option>
+            <option value="SGD">Dolar Singapura (S$)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- TRANSACTION MODAL -->
+  <div class="modal" id="txModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="txModalTitle">Tambah Transaksi</h3>
+        <button class="icon-btn" data-close-modal>✕</button>
+      </div>
+      <form id="txForm" class="form">
+        <input type="hidden" id="txId" />
+        <div class="tab-group" role="tablist">
+          <button type="button" class="tab active" data-tx-type="expense">Pengeluaran</button>
+          <button type="button" class="tab" data-tx-type="income">Pemasukan</button>
+          <button type="button" class="tab" data-tx-type="transfer">Transfer</button>
+        </div>
+        <input type="hidden" id="txType" value="expense" />
+
+        <label>Jumlah
+          <input type="number" id="txAmount" min="0" step="0.01" required placeholder="0" />
+        </label>
+
+        <div class="form-row">
+          <label>Tanggal
+            <input type="date" id="txDate" required />
+          </label>
+          <label id="txCategoryWrap">Kategori
+            <select id="txCategory" required></select>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label id="txAccountWrap">Akun
+            <select id="txAccount" required></select>
+          </label>
+          <label id="txAccountToWrap" style="display:none">Ke Akun
+            <select id="txAccountTo"></select>
+          </label>
+        </div>
+
+        <label>Catatan
+          <input type="text" id="txNote" maxlength="120" placeholder="Contoh: Makan siang" />
+        </label>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-danger" id="txDeleteBtn" style="display:none">Hapus</button>
+          <button type="button" class="btn btn-ghost" data-close-modal>Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CATEGORY MODAL -->
+  <div class="modal" id="catModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="catModalTitle">Tambah Kategori</h3>
+        <button class="icon-btn" data-close-modal>✕</button>
+      </div>
+      <form id="catForm" class="form">
+        <input type="hidden" id="catId" />
+        <label>Nama
+          <input type="text" id="catName" required maxlength="30" />
+        </label>
+        <div class="form-row">
+          <label>Tipe
+            <select id="catType">
+              <option value="expense">Pengeluaran</option>
+              <option value="income">Pemasukan</option>
+            </select>
+          </label>
+          <label>Ikon
+            <input type="text" id="catIcon" maxlength="2" placeholder="🍔" />
+          </label>
+          <label>Warna
+            <input type="color" id="catColor" value="#6366f1" />
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-danger" id="catDeleteBtn" style="display:none">Hapus</button>
+          <button type="button" class="btn btn-ghost" data-close-modal>Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ACCOUNT MODAL -->
+  <div class="modal" id="accModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="accModalTitle">Tambah Akun</h3>
+        <button class="icon-btn" data-close-modal>✕</button>
+      </div>
+      <form id="accForm" class="form">
+        <input type="hidden" id="accId" />
+        <label>Nama Akun
+          <input type="text" id="accName" required maxlength="30" placeholder="Bank BCA" />
+        </label>
+        <div class="form-row">
+          <label>Saldo Awal
+            <input type="number" id="accInitial" step="0.01" value="0" />
+          </label>
+          <label>Ikon
+            <input type="text" id="accIcon" maxlength="2" placeholder="🏦" />
+          </label>
+          <label>Warna
+            <input type="color" id="accColor" value="#0ea5e9" />
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-danger" id="accDeleteBtn" style="display:none">Hapus</button>
+          <button type="button" class="btn btn-ghost" data-close-modal>Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- BUDGET MODAL -->
+  <div class="modal" id="budgetModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="budgetModalTitle">Tambah Budget</h3>
+        <button class="icon-btn" data-close-modal>✕</button>
+      </div>
+      <form id="budgetForm" class="form">
+        <input type="hidden" id="budgetId" />
+        <label>Kategori
+          <select id="budgetCategory" required></select>
+        </label>
+        <label>Batas Bulanan
+          <input type="number" id="budgetLimit" min="0" step="0.01" required />
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-danger" id="budgetDeleteBtn" style="display:none">Hapus</button>
+          <button type="button" class="btn btn-ghost" data-close-modal>Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- GOAL MODAL -->
+  <div class="modal" id="goalModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="goalModalTitle">Tambah Target</h3>
+        <button class="icon-btn" data-close-modal>✕</button>
+      </div>
+      <form id="goalForm" class="form">
+        <input type="hidden" id="goalId" />
+        <label>Nama Target
+          <input type="text" id="goalName" required maxlength="40" placeholder="Dana Liburan" />
+        </label>
+        <div class="form-row">
+          <label>Jumlah Target
+            <input type="number" id="goalTarget" min="0" step="0.01" required />
+          </label>
+          <label>Terkumpul
+            <input type="number" id="goalSaved" min="0" step="0.01" value="0" />
+          </label>
+        </div>
+        <label>Tenggat (opsional)
+          <input type="date" id="goalDeadline" />
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-danger" id="goalDeleteBtn" style="display:none">Hapus</button>
+          <button type="button" class="btn btn-ghost" data-close-modal>Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
